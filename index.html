@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agenda Divas</title>
+<style>
+:root{--p-bg:#fbf4f6;--p-tx:#3a2530;--p-mu:#8a6f7c;--p-ln:#ecd9e0;--p-hd:#b5627f;--p-ac:#c4688b;--p-acs:#f8e3ea;--bg:var(--p-bg);--sf:#fff;--tx:var(--p-tx);--mu:var(--p-mu);--ln:var(--p-ln);--hd:var(--p-hd);--ac:var(--p-ac);--acs:var(--p-acs);--pe:#ffeab5;--fi:#e6dcf3;--co:#cdeedd;--bl:#f4a9ae;--off:#e6d9de}
+:root[data-pal="lilas"]{--p-bg:#f7f3fb;--p-tx:#2f2540;--p-mu:#7b6e8f;--p-ln:#e1d6ee;--p-hd:#8e6bb5;--p-ac:#9a74c4;--p-acs:#eadff7}
+:root[data-pal="nude"]{--p-bg:#fbf6f2;--p-tx:#3b2b25;--p-mu:#8c7468;--p-ln:#eadccf;--p-hd:#b08a76;--p-ac:#b8806a;--p-acs:#f6e8df}
+:root[data-pal="coral"]{--p-bg:#fff6f2;--p-tx:#402a26;--p-mu:#946f66;--p-ln:#f2dcd3;--p-hd:#e0836b;--p-ac:#e07a62;--p-acs:#fde4dc}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#221a1f;--sf:#2c2228;--tx:#f5e9ef;--mu:#bda5b1;--ln:#463640;--acs:#4a3340;--pe:#6e5a22;--fi:#4d3f6b;--co:#2c5e48;--bl:#8f3f49;--off:#43363d}}
+:root[data-theme="dark"]{--bg:#221a1f;--sf:#2c2228;--tx:#f5e9ef;--mu:#bda5b1;--ln:#463640;--acs:#4a3340;--pe:#6e5a22;--fi:#4d3f6b;--co:#2c5e48;--bl:#8f3f49;--off:#43363d}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--tx);font:14px/1.3 "Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.app{display:grid;grid-template-columns:230px 1fr;height:100%}
+aside{background:var(--sf);border-right:1px solid var(--ln);padding:10px;overflow:auto}
+main{display:flex;flex-direction:column;min-width:0;height:100%}
+.top{background:var(--hd);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:8px 14px;gap:8px}
+.top h1{font-size:17px;margin:0;font-weight:600;text-align:center;flex:1}
+button{font:inherit;color:inherit;cursor:pointer}
+.nav{background:none;border:0;color:#fff;font-size:22px;padding:0 8px}
+.mini{background:var(--ac);color:#fff;border-radius:4px;padding:4px;margin-bottom:8px}
+.mh{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:13px;padding:2px 4px}
+.mh button{background:none;border:0;color:#fff;font-size:16px}
+.mg{display:grid;grid-template-columns:repeat(7,1fr);background:var(--sf);color:var(--tx);border-radius:3px;margin-top:3px;text-align:center;font-size:12px}
+.mg span{padding:3px 0;cursor:pointer}.mg .w{color:var(--mu);cursor:default;font-size:11px}.mg .o{color:var(--mu);opacity:.5}
+.mg .t{outline:1px solid var(--ac);border-radius:50%}.mg .s{background:var(--ac);color:#fff;border-radius:50%}
+.hoje{width:100%;background:var(--ac);color:#fff;border:0;border-radius:3px;padding:3px;font-size:12px;margin-bottom:8px;font-weight:600}
+.act{display:flex;align-items:center;gap:10px;width:100%;background:var(--acs);border:0;border-bottom:2px solid var(--sf);padding:9px 10px;text-align:left}
+.act:hover{filter:brightness(.96)}.act:disabled{opacity:.45;cursor:default}
+.info{background:var(--acs);padding:8px 10px;margin:8px 0;min-height:84px;font-size:13px}
+.leg div{display:flex;align-items:center;gap:8px;margin:3px 0;font-size:13px}.leg i{width:20px;height:20px;border:1px solid var(--ln);display:inline-block}
+.wrap{flex:1;overflow:auto;position:relative;background:var(--sf)}
+.grid{display:grid;width:max-content;min-width:100%}
+.hrow{display:contents}
+.hc{position:sticky;top:0;z-index:5;background:var(--acs);border:1px solid var(--ln);padding:6px 4px;text-align:center;font-weight:600;font-size:13px;height:32px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.corner{left:0;z-index:7}
+.tc{position:sticky;left:0;z-index:4;background:var(--acs);border-right:1px solid var(--ln)}
+.tl{height:26px;padding:0 6px;font-size:12px;color:var(--mu);border-bottom:1px solid var(--ln);display:flex;align-items:center}
+.tl.h{color:var(--tx);font-weight:600}
+.col{position:relative;border-right:1px solid var(--ln);min-width:130px;background:repeating-linear-gradient(to bottom,transparent 0 25px,var(--ln) 25px 26px)}
+.col.sel .cell{}
+.cell{position:absolute;left:0;right:0;height:26px;cursor:pointer}
+.cell:hover{background:var(--acs)}.cell.pick{outline:2px dotted var(--ac);outline-offset:-2px}
+.off{position:absolute;left:0;right:0;background:var(--off);opacity:.8;pointer-events:none}
+.ap{position:absolute;left:1px;right:1px;border:0;border-radius:2px;padding:2px 5px;text-align:left;overflow:hidden;z-index:2;color:#1d2733;font-size:13px;line-height:1.2}
+.ap small{display:block;text-transform:uppercase;font-size:11px;opacity:.7}
+.ap.pendente{background:var(--pe)}.ap.finalizado{background:var(--fi)}.ap.confirmado{background:var(--co)}.ap.bloqueado{background:var(--bl)}
+:root[data-theme="dark"] .ap,@media (prefers-color-scheme:dark){.ap{color:#f1f4f8}}
+.ap.on{outline:2px solid var(--ac);z-index:3}
+.now{position:absolute;left:0;right:0;height:2px;background:#e23b3b;z-index:3;pointer-events:none}
+dialog{border:1px solid var(--ln);border-radius:8px;background:var(--sf);color:var(--tx);padding:18px;width:min(380px,92vw)}
+dialog::backdrop{background:#0006}
+dialog h2{margin:0 0 10px;font-size:17px}
+label{display:block;font-size:12px;color:var(--mu);margin-top:8px}
+input,select{width:100%;padding:7px;border:1px solid var(--ln);border-radius:4px;background:var(--bg);color:var(--tx);font:inherit;margin-top:2px}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.btns{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
+.btns button{padding:7px 14px;border-radius:5px;border:1px solid var(--ln);background:var(--bg)}
+.btns{flex-wrap:wrap}.btns #bd{margin-right:auto;color:#c0392b}.btns .pri{background:var(--ac);color:#fff;border-color:var(--ac)}
+dialog{max-height:92vh;overflow:auto}.xr{border-top:1px dashed var(--ln);margin-top:10px;padding-top:2px}.xt{display:block;padding:8px 0}.xrm{background:none;border:0;color:#c0392b;padding:4px 0;font-size:12px}.addx{margin-top:10px;width:100%;padding:8px;border:1px dashed var(--ac);background:none;color:var(--ac);border-radius:5px}
+#dg2{width:min(460px,94vw)}.lst{display:flex;flex-direction:column;max-height:34vh;overflow:auto;border:1px solid var(--ln);border-radius:4px;margin:8px 0}.it{display:flex;justify-content:space-between;gap:8px;text-align:left;padding:8px 10px;border:0;border-bottom:1px solid var(--ln);background:var(--bg);width:100%}button.it:hover{background:var(--acs)}.it span,.mu{color:var(--mu);font-size:12px}.mu{padding:8px 10px;margin:0}dialog h3{font-size:14px;margin:12px 0 0}
+.top h1{font-family:Georgia,"Times New Roman",serif;letter-spacing:.04em}.pal{display:flex;gap:8px;margin-top:14px;align-items:center;font-size:13px}.pal button{width:26px;height:26px;border-radius:50%;border:2px solid var(--sf);outline:1px solid var(--ln)}.pal button.on{outline:2px solid var(--tx)}
+.toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:8px 14px;border-radius:6px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+.toast.show{opacity:1}
+@media (max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:auto 1fr}aside{border-right:0;border-bottom:1px solid var(--ln);max-height:44vh}.col,.hc{min-width:112px}}
+#auth{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px}
+.ac{background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:26px;width:min(380px,100%);box-shadow:0 8px 30px #0001}
+.ac h1{font:600 26px Georgia,"Times New Roman",serif;margin:0 0 4px;color:var(--hd);text-align:center}
+.as{margin:0 0 10px;text-align:center;color:var(--mu);font-size:13px}
+.ac .pri{width:100%;margin-top:16px;padding:10px;border:0;border-radius:6px;background:var(--ac);color:#fff;font-weight:600}
+.ac .pri:disabled{opacity:.6}
+.lk{display:block;margin:12px auto 0;background:none;border:0;color:var(--ac);text-decoration:underline}
+.am{min-height:18px;margin:10px 0 0;text-align:center;font-size:13px;color:var(--mu)}
+.usr{margin-top:14px;padding-top:10px;border-top:1px solid var(--ln);font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.usr button{padding:5px 12px;border:1px solid var(--ln);border-radius:5px;background:var(--bg)}
+.rec .ownly{display:none!important}
+</style>
+</head>
+<body>
+<div id="auth"><form class="ac" id="aform" novalidate>
+<h1>Agenda Divas</h1><p class="as" id="as">Acesse com seu e-mail e senha</p>
+<label id="ael">E-mail<input id="ae" type="email" autocomplete="username" inputmode="email"></label>
+<label id="apl"><span id="apt">Senha</span><input id="ap" type="password" autocomplete="current-password"></label>
+<label id="ap2l" style="display:none">Repita a nova senha<input id="ap2" type="password" autocomplete="new-password"></label>
+<button class="pri" id="ab" type="submit">Entrar</button>
+<button type="button" class="lk" id="af">Esqueci minha senha</button>
+<p id="am" class="am" role="alert"></p></form></div>
+<div class="app">
+<aside>
+  <div class="mini"><div class="mh"><button id="mp" aria-label="Mês anterior">‹</button><span id="mt"></span><button id="mn" aria-label="Próximo mês">›</button></div><div class="mg" id="mg"></div></div>
+  <button class="hoje" id="hoje">IR PARA HOJE</button>
+  <button class="act" id="aInc">＋ Incluir</button>
+  <button class="act" id="aAlt">✎ Alterar</button>
+  <button class="act" id="aDet">☰ Detalhes</button>
+  <button class="act" id="aCan">✕ Cancelar</button>
+  <button class="act" id="aFin">✓ Finalizar</button>
+  <button class="act" id="aBus">⌕ Buscar</button>
+  <button class="act" id="aSv">✂ Serviços</button>
+  <button class="act" id="aCl">☺ Clientes</button>
+  <button class="act" id="aPr">♛ Profissionais</button>
+  <button class="act ownly" id="aBk">⇩ Backup</button>
+  <div class="info" id="info"></div>
+  <div class="leg">
+    <div><i style="background:var(--pe)"></i>Pendente</div><div><i style="background:var(--fi)"></i>Finalizado</div>
+    <div><i style="background:var(--co)"></i>Confirmado</div><div><i style="background:var(--bl)"></i>Horário bloqueado</div>
+  </div>
+<div class="pal" id="pal"></div>
+  <div class="usr"><span id="un"></span><button id="lo">Sair</button></div>
+</aside>
+<main>
+  <div class="top"><button class="nav" id="dp" aria-label="Dia anterior">◀</button><h1 id="tt"></h1><button class="nav" id="dn" aria-label="Próximo dia">▶</button></div>
+  <div class="wrap" id="wrap"><div class="grid" id="grid"></div></div>
+</main>
+</div>
+
+<dialog id="dlg">
+  <h2 id="dh">Novo agendamento</h2>
+  <label>Cliente<input id="fc" list="cl" autocomplete="off"></label>
+  <label>Serviço<input id="fs" list="sv" autocomplete="off"></label>
+  <datalist id="sv"></datalist><datalist id="cl"></datalist>
+  <label>Profissional<select id="fp"></select></label>
+  <div class="row"><label>Horário<select id="fh"></select></label><label>Duração<select id="fd"></select></label></div>
+  <div id="ex"></div><button class="addx" id="bad">+ Adicionar outro serviço</button>
+  <label>Situação<select id="fst"><option value="pendente">Pendente</option><option value="confirmado">Confirmado</option><option value="finalizado">Finalizado</option><option value="bloqueado">Horário bloqueado</option></select></label>
+  <div class="btns"><button id="bd">Cancelar atendimento</button><button id="bf">Finalizar</button><button id="bx">Fechar</button><button class="pri" id="bs">Salvar</button></div>
+</dialog>
+<dialog id="dg3"><p id="q3" style="margin:0 0 8px;font-size:15px"></p><input id="qi"><div class="btns"><button id="qno">Voltar</button><button class="pri" id="qok">Confirmar</button></div></dialog>
+<dialog id="dg2"><div id="p2"></div></dialog>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+let PROFS=[],PU=[];
+const START=8*60,END=20*60,STEP=15,H=26;
+const MES=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+const DIA=["domingo","segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira","sábado"];
+const $=id=>document.getElementById(id);
+const key=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const hm=m=>String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let today=new Date(),cur=new Date(today.getFullYear(),today.getMonth(),today.getDate()),view=new Date(cur),appts=[],selA=null,selS=null,editId=null;
+const today0=key(today);
+const save=()=>queue();
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1800)}
+
+function render(){
+  $("tt").textContent=DIA[cur.getDay()].toUpperCase()+" | "+cur.getDate()+" DE "+MES[cur.getMonth()].toUpperCase()+" | "+cur.getFullYear();
+  const g=$("grid");g.style.gridTemplateColumns="64px repeat("+PROFS.length+",minmax(130px,1fr))";
+  let h='<div class="hc corner tc"></div>'+PROFS.map(p=>'<div class="hc">'+esc(p)+'</div>').join("");
+  const rows=(END-START)/STEP;
+  let tl="";for(let i=0;i<rows;i++){const m=START+i*STEP;tl+='<div class="tl'+(m%60==0?" h":"")+'">'+hm(m)+'</div>'}
+  h+='<div class="tc">'+tl+'</div>';
+  const k=key(cur);
+  PROFS.forEach((p,pi)=>{
+    let c='<div class="col" data-p="'+pi+'" style="height:'+rows*H+'px">';
+    appts.filter(a=>a.status!="cancelado"&&a.date==k&&a.prof==pi).forEach(a=>{
+      c+='<button class="ap '+a.status+(a.id==selA?" on":"")+'" data-id="'+a.id+'" style="top:'+(a.start-START)/STEP*H+'px;height:'+a.dur/STEP*H+'px"><b>'+esc(a.client||(a.status=="bloqueado"?"Bloqueado":""))+'</b><small>'+esc(a.service)+'</small></button>'});
+    if(selS&&selS.p==pi)c+='<div class="cell pick" style="top:'+(selS.m-START)/STEP*H+'px"></div>';
+    if(k==today0){const n=today.getHours()*60+today.getMinutes();if(n>=START&&n<END&&pi==0)c+='';}
+    g.dataset.k=k;h+=c+'</div>'});
+  g.innerHTML=h;
+  if(k==today0){const n=today.getHours()*60+today.getMinutes();if(n>=START&&n<END){const l=document.createElement("div");l.className="now";l.style.top=(32+(n-START)/STEP*H)+"px";l.style.gridColumn="1/-1";l.style.position="absolute";l.style.left="0";g.style.position="relative";g.appendChild(l)}}
+  renderMini();renderInfo();
+}
+function renderMini(){
+  $("mt").textContent=MES[view.getMonth()]+" de "+view.getFullYear();
+  let h=["dom","seg","ter","qua","qui","sex","sáb"].map(d=>'<span class="w">'+d+'</span>').join("");
+  const f=new Date(view.getFullYear(),view.getMonth(),1);
+  for(let i=0;i<42;i++){const d=new Date(f);d.setDate(1-f.getDay()+i);
+    const cls=(d.getMonth()!=view.getMonth()?"o ":"")+(key(d)==today0?"t ":"")+(key(d)==key(cur)?"s":"");
+    h+='<span class="'+cls+'" data-d="'+key(d)+'">'+d.getDate()+'</span>'}
+  $("mg").innerHTML=h;
+}
+function renderInfo(){
+  const a=appts.find(x=>x.id==selA);
+  if(a)$("info").innerHTML="<b>Horário:</b> "+hm(a.start)+" – "+hm(a.start+a.dur)+"<br><b>"+esc(PROFS[a.prof])+"</b><br>"+esc(a.client)+" · "+esc(a.service)+"<br>Situação: "+a.status.toUpperCase()+(priceOf(a.service)?"<br>"+money(priceOf(a.service)):"");
+  else if(selS)$("info").innerHTML="<b>Horário:</b> "+hm(selS.m)+"<br><b>"+esc(PROFS[selS.p])+"</b><br>Situação: DISPONÍVEL";
+  else $("info").innerHTML="Toque em um horário livre para agendar ou em um atendimento para alterar.";
+  ["aAlt","aDet","aCan","aFin"].forEach(i=>$(i).disabled=!a);
+  $("aInc").disabled=!selS&&!a;
+}
+function setDate(d){cur=new Date(d.getFullYear(),d.getMonth(),d.getDate());view=new Date(cur);selA=null;selS=null;render()}
+$("dp").onclick=()=>{const d=new Date(cur);d.setDate(d.getDate()-1);setDate(d)};
+$("dn").onclick=()=>{const d=new Date(cur);d.setDate(d.getDate()+1);setDate(d)};
+$("hoje").onclick=()=>setDate(new Date());
+$("mp").onclick=()=>{view.setMonth(view.getMonth()-1);renderMini()};
+$("mn").onclick=()=>{view.setMonth(view.getMonth()+1);renderMini()};
+$("mg").onclick=e=>{const d=e.target.dataset.d;if(d){const[y,m,dd]=d.split("-");setDate(new Date(+y,m-1,+dd))}};
+
+$("grid").onclick=e=>{
+  const ap=e.target.closest(".ap");
+  if(ap){selA=+ap.dataset.id;selS=null;render();openDlg(selA);return}
+  const col=e.target.closest(".col");
+  if(col){const r=col.getBoundingClientRect();const m=START+Math.floor((e.clientY-r.top)/H)*STEP;
+    selS={p:+col.dataset.p,m};selA=null;render();openDlg(null)}
+};
+
+function fillSelects(){
+  $("fp").innerHTML=PROFS.map((p,i)=>'<option value="'+i+'">'+esc(p)+'</option>').join("");
+  let o="";for(let m=START;m<END;m+=STEP)o+='<option value="'+m+'">'+hm(m)+'</option>';$("fh").innerHTML=o;
+  o="";for(let d=15;d<=300;d+=15)o+='<option value="'+d+'">'+(d>=60?Math.floor(d/60)+"h":"")+(d%60?(d%60)+"min":"")+'</option>';$("fd").innerHTML=o;
+}
+function openDlg(id){
+  editId=id;const a=appts.find(x=>x.id==id);
+  $("dh").textContent=a?"Alterar agendamento":"Novo agendamento";
+  $("fc").value=a?a.client:"";$("fs").value=a?a.service:"";
+  $("fp").value=a?a.prof:(selS?selS.p:0);$("fh").value=a?a.start:(selS?selS.m:600);
+  $("fd").value=a?a.dur:60;$("fst").value=a?a.status:"pendente";
+  $("bd").style.display=$("bf").style.display=a?"":"none";
+  extras=[];drawExtra();$("bad").style.display=a?"none":"";
+  $("dlg").showModal();if(!a)$("fc").focus();
+}
+$("aInc").onclick=()=>openDlg(null);
+$("aAlt").onclick=()=>openDlg(selA);
+$("aDet").onclick=()=>openDlg(selA);
+$("bx").onclick=()=>$("dlg").close();
+$("bd").onclick=async()=>{const a=appts.find(x=>x.id==editId);if(a&&await ask("Cancelar o atendimento de "+(a.client||"bloqueio")+"?")){a.status="cancelado";selA=null;save();$("dlg").close();render();toast("Atendimento cancelado")}};
+$("bf").onclick=()=>{const a=appts.find(x=>x.id==editId);if(a){a.status="finalizado";a.price=priceOf(a.service);save();$("dlg").close();render();toast("Atendimento finalizado")}};
+$("bs").onclick=async()=>{
+  const o={date:key(cur),prof:+$("fp").value,start:+$("fh").value,dur:+$("fd").value,client:$("fc").value.trim(),service:$("fs").value.trim(),status:$("fst").value};
+  if(!o.client&&o.status!="bloqueado"){toast("Informe o nome do cliente");return}
+  const clash=appts.find(a=>a.status!="cancelado"&&a.id!=editId&&a.date==o.date&&a.prof==o.prof&&a.start<o.start+o.dur&&o.start<a.start+a.dur);
+  if(clash&&!await ask("Já existe um atendimento nesse horário ("+(clash.client||"bloqueio")+"). Agendar mesmo assim?"))return;
+  ensureClient(o.client);refreshLists();
+  const list=[o];let t=o.start+o.dur;
+  if(!editId)extras.forEach(x=>{list.push({date:o.date,prof:x.prof,start:t,dur:x.dur,client:o.client,service:x.service.trim(),status:o.status});t+=x.dur});
+  if(!editId&&t>END){toast("Os serviços passam do fechamento ("+hm(END)+")");return}
+  if(list.slice(1).some(n=>appts.some(a=>a.status!="cancelado"&&a.date==n.date&&a.prof==n.prof&&a.start<n.start+n.dur&&n.start<a.start+a.dur))&&!await ask("Um dos serviços adicionais cai em horário já ocupado. Agendar mesmo assim?"))return;
+  if(editId){Object.assign(appts.find(a=>a.id==editId),o)}else{list.forEach((n,i)=>{n.id=Date.now()+i;appts.push(n)});selA=list[0].id;selS=null}
+  save();$("dlg").close();render();toast(!editId&&extras.length?(extras.length+1)+" serviços agendados":"Agendamento salvo");
+};
+$("aCan").onclick=async()=>{const a=appts.find(x=>x.id==selA);if(a&&await ask("Cancelar o atendimento de "+(a.client||"bloqueio")+"?")){a.status="cancelado";selA=null;save();render();toast("Atendimento cancelado")}};
+$("aFin").onclick=()=>{const a=appts.find(x=>x.id==selA);if(a){a.status="finalizado";a.price=priceOf(a.service);save();render();toast("Atendimento finalizado")}};
+$("aBus").onclick=async()=>{
+  const q=((await ask("Buscar cliente:",true))||"").trim().toLowerCase();if(!q)return;
+  const f=appts.filter(a=>a.client.toLowerCase().includes(q)).sort((a,b)=>a.date<b.date?-1:1);
+  const n=f.find(a=>a.date>=key(cur))||f[0];
+  if(!n){toast("Nenhum cliente encontrado");return}
+  const[y,m,d]=n.date.split("-");setDate(new Date(+y,m-1,+d));selA=n.id;render();
+};
+const money=v=>(+v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||'null')||d}catch(e){return d}};
+let svcs=[];
+let clis=[];
+const saveS=()=>queue();
+const priceOf=n=>{const s=svcs.find(x=>x.name.toLowerCase()==String(n).toLowerCase());return s?s.price:0};
+function ensureClient(n){if(n&&!clis.some(c=>c.name.toLowerCase()==n.toLowerCase())){clis.push({id:Date.now(),name:n,phone:''});saveS()}}
+function refreshLists(){$('sv').innerHTML=svcs.map(s=>'<option value="'+esc(s.name)+'">').join('');$('cl').innerHTML=clis.map(c=>'<option value="'+esc(c.name)+'">').join('')}
+const D2=$('dg2'),P=$('p2');
+const durOpts=sel=>{let o='';for(let d=15;d<=300;d+=15)o+='<option value="'+d+'"'+(d==sel?' selected':'')+'>'+(d>=60?Math.floor(d/60)+'h':'')+(d%60?(d%60)+'min':'')+'</option>';return o};
+function showSvc0(id){
+  const s=svcs.find(x=>x.id==id)||{name:'',dur:60,price:''};
+  P.innerHTML='<h2>Serviços</h2><div class="lst">'+(svcs.map(x=>'<button class="it" onclick="showSvc('+x.id+')"><b>'+esc(x.name)+'</b><span>'+x.dur+' min · '+money(x.price)+'</span></button>').join('')||'<p class="mu">Nenhum serviço cadastrado.</p>')+'</div>'
+  +'<h3>'+(id?'Alterar serviço':'Novo serviço')+'</h3><label>Nome<input id="sn" value="'+esc(s.name)+'"></label><div class="row"><label>Duração padrão<select id="sd">'+durOpts(s.dur)+'</select></label><label>Preço (R$)<input id="sp" type="number" min="0" step="0.01" inputmode="decimal" value="'+s.price+'"></label></div>'
+  +'<div class="btns">'+(id?'<button onclick="delSvc('+id+')" style="margin-right:auto;color:#c0392b">Excluir</button><button onclick="showSvc()">Novo</button>':'')+'<button onclick="D2.close()">Fechar</button><button class="pri" onclick="saveSvc('+(id||0)+')">Salvar</button></div>';
+  if(!D2.open)D2.showModal();
+}
+function saveSvc(id){const n=$('sn').value.trim();if(!n){toast('Informe o nome do serviço');return}
+  const o={name:n,dur:+$('sd').value,price:+$('sp').value||0};
+  if(id)Object.assign(svcs.find(x=>x.id==id),o);else svcs.push({id:Date.now(),...o});
+  saveS();refreshLists();showSvc();toast('Serviço salvo')}
+async function delSvc(id){if(await ask('Excluir este serviço?')){svcs=svcs.filter(x=>x.id!=id);saveS();refreshLists();showSvc()}}
+const hist=c=>appts.filter(a=>a.client.toLowerCase()==c.name.toLowerCase()).sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:b.start-a.start);
+function showCli(id){
+  if(id){const c=clis.find(x=>x.id==id),h=hist(c),tot=h.filter(a=>a.status=='finalizado').reduce((t,a)=>t+priceOf(a.service),0);
+    P.innerHTML='<h2>Cliente</h2><label>Nome<input id="cn" value="'+esc(c.name)+'"></label><label>Telefone / WhatsApp<input id="cp" type="tel" inputmode="tel" placeholder="(53) 99999-9999" value="'+esc(c.phone)+'"></label>'
+    +'<h3>Histórico: '+h.length+' atendimentos · '+money(tot)+' em finalizados</h3><div class="lst">'+(h.map(a=>{const[y,m,d]=a.date.split('-');return '<div class="it"><b>'+d+'/'+m+'/'+y+' '+hm(a.start)+'</b><span>'+esc(a.service)+' · '+esc(PROFS[a.prof])+' · '+a.status+(priceOf(a.service)?' · '+money(priceOf(a.service)):'')+'</span></div>'}).join('')||'<p class="mu">Nenhum atendimento ainda.</p>')+'</div>'
+    +'<div class="btns"><button class="ownly" onclick="delCli('+id+')" style="margin-right:auto;color:#c0392b">Excluir</button><button onclick="showCli()">Voltar</button><button class="pri" onclick="saveCli('+id+')">Salvar</button></div>';
+  }else{P.innerHTML='<h2>Clientes</h2><input id="cq" placeholder="Buscar por nome ou telefone" oninput="drawCli()"><div class="lst" id="cl2"></div><div class="btns"><button onclick="addCli()">Novo cliente</button><button onclick="D2.close()">Fechar</button></div>';drawCli()}
+  if(!D2.open)D2.showModal();
+}
+function drawCli(){const q=$('cq').value.toLowerCase();
+  $('cl2').innerHTML=clis.filter(c=>(c.name+c.phone).toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name)).map(c=>'<button class="it" onclick="showCli('+c.id+')"><b>'+esc(c.name)+'</b><span>'+esc(c.phone||'sem telefone')+' · '+hist(c).length+' atend.</span></button>').join('')||'<p class="mu">Nenhum cliente encontrado.</p>'}
+async function addCli(){const n=((await ask('Nome do novo cliente:',true))||'').trim();if(!n)return;ensureClient(n);refreshLists();showCli(clis.find(c=>c.name.toLowerCase()==n.toLowerCase()).id)}
+function saveCli(id){const c=clis.find(x=>x.id==id),n=$('cn').value.trim();if(!n){toast('Informe o nome');return}
+  if(n!=c.name){appts.forEach(a=>{if(a.client.toLowerCase()==c.name.toLowerCase())a.client=n});save();render()}
+  c.name=n;c.phone=$('cp').value.trim();saveS();refreshLists();showCli();toast('Cliente salvo')}
+async function delCli(id){if(await ask('Excluir este cliente? Os atendimentos continuam na agenda.')){clis=clis.filter(x=>x.id!=id);saveS();refreshLists();showCli()}}
+$('aSv').onclick=()=>showSvc();$('aCl').onclick=()=>showCli();$('aPr').onclick=()=>showPro(-1);
+function ask(msg,inp){return new Promise(r=>{const d=$('dg3'),i=$('qi');$('q3').textContent=msg;i.style.display=inp?'':'none';i.value='';$('qok').textContent=inp?'OK':'Confirmar';
+  const done=v=>{d.oncancel=null;d.close();r(v)};
+  $('qok').onclick=()=>done(inp?i.value:true);$('qno').onclick=()=>done(inp?null:false);d.oncancel=()=>done(inp?null:false);d.showModal();if(inp)i.focus()})}
+let extras=[];
+function drawExtra(){
+  $('ex').innerHTML=extras.map((x,i)=>'<div class="xr"><div class="row"><label>Serviço '+(i+2)+'<input list="sv" value="'+esc(x.service)+'" oninput="xs('+i+',this.value)"></label><label>Profissional<select onchange="xp('+i+',this.value)">'+PROFS.map((p,k)=>'<option value="'+k+'"'+(k==x.prof?' selected':'')+'>'+esc(p)+'</option>').join('')+'</select></label></div><div class="row"><label>Duração<select id="xd'+i+'" onchange="xd('+i+',this.value)">'+durOpts(x.dur)+'</select></label><label>Horário<span class="xt" id="xt'+i+'"></span></label></div><button class="xrm" onclick="xr('+i+')">Remover este serviço</button></div>').join('');
+  updTimes();
+}
+function updTimes(){let t=+$('fh').value+ +$('fd').value;extras.forEach((x,i)=>{const e=$('xt'+i);if(e)e.textContent=hm(t)+' – '+hm(t+x.dur);t+=x.dur})}
+const xs=(i,v)=>{extras[i].service=v;const s=svcs.find(q=>q.name.toLowerCase()==v.trim().toLowerCase());if(s){extras[i].dur=s.dur;$('xd'+i).value=s.dur;updTimes()}};
+const xp=(i,v)=>{extras[i].prof=+v};
+const xd=(i,v)=>{extras[i].dur=+v;updTimes()};
+const xr=i=>{extras.splice(i,1);drawExtra()};
+$('bad').onclick=()=>{const l=extras[extras.length-1];extras.push({service:'',prof:l?l.prof:+$('fp').value,dur:60});drawExtra()};
+$('fd').onchange=updTimes;$('fh').onchange=updTimes;
+const PALS=[['rose','Rosé','#c4688b'],['lilas','Lilás','#9a74c4'],['nude','Nude','#b8806a'],['coral','Coral','#e07a62']];
+function setPal(k){document.documentElement.dataset.pal=k;try{localStorage.setItem('agenda-salao-pal',JSON.stringify(k))}catch(e){}
+  $('pal').innerHTML='<span>Cores</span>'+PALS.map(p=>'<button title="'+p[1]+'" aria-label="'+p[1]+'" data-k="'+p[0]+'" class="'+(p[0]==k?'on':'')+'" style="background:'+p[2]+'"></button>').join('')}
+$('pal').onclick=e=>{const k=e.target.dataset.k;if(k)setPal(k)};
+$('aBk').onclick=()=>showBackup();
+function showBackup(){
+  const j=JSON.stringify({v:1,appts,svcs,clis,profs:PROFS,em:new Date().toISOString()},null,1);
+  P.innerHTML='<h2>Backup dos dados</h2><p class="mu" style="padding:0 0 8px;margin:0">Copie ou baixe este texto e guarde em local seguro. Para restaurar em outro navegador, cole o texto na caixa e use Restaurar.</p><textarea id="bk" style="width:100%;height:200px;font:12px monospace;background:var(--bg);color:var(--tx);border:1px solid var(--ln);border-radius:4px">'+esc(j)+'</textarea><div class="btns"><button onclick="bkCopy()">Copiar</button><button onclick="bkDown()">Baixar</button><button onclick="bkRest()">Restaurar</button><button onclick="D2.close()">Fechar</button></div>';
+  if(!D2.open)D2.showModal();
+}
+function bkCopy(){const t=$('bk');t.select();const ok=()=>toast('Copiado');try{navigator.clipboard.writeText(t.value).then(ok,()=>{document.execCommand('copy');ok()})}catch(e){document.execCommand('copy');ok()}}
+function bkDown(){try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([$('bk').value],{type:'application/json'}));a.download='agenda-divas-backup-'+today0+'.json';a.click();toast('Arquivo gerado')}catch(e){toast('Use o botão Copiar')}}
+async function bkRest(){let d;try{d=JSON.parse($('bk').value)}catch(e){toast('Texto inválido');return}
+  if(!d||![d.appts,d.svcs,d.clis,d.profs].every(Array.isArray)){toast('Backup incompleto');return}
+  if(!await ask('Restaurar substitui todos os dados atuais deste navegador. Continuar?'))return;
+  const oP=PROFS.slice(),oU=PU.slice(),oS=svcs.slice(),oC=clis.slice();appts=d.appts;svcs=d.svcs;clis=d.clis;PROFS=d.profs;PU=PROFS.map(n=>{const k=oP.indexOf(n);return k>=0?oU[k]:null});svcs.forEach(s=>{s.u=(oS.find(x=>x.name.toLowerCase()==s.name.toLowerCase())||{}).u});clis.forEach(c=>{c.u=(oC.find(x=>x.name.toLowerCase()==c.name.toLowerCase())||{}).u});appts.forEach(a=>{delete a.u});save();saveS();saveP();refreshLists();fillSelects();selA=null;selS=null;render();D2.close();toast('Dados restaurados')}
+setPal(ld('agenda-salao-pal','rose'));
+const saveP=()=>queue();
+function showPro0(i){
+  P.innerHTML='<h2>Profissionais</h2><div class="lst">'+PROFS.map((p,k)=>'<button class="it" onclick="showPro('+k+')"><b>'+esc(p)+'</b><span>'+appts.filter(a=>a.prof==k).length+' atend.</span></button>').join('')+'</div><h3>'+(i>=0?'Alterar profissional':'Novo profissional')+'</h3><label>Nome<input id="pn" value="'+esc(i>=0?PROFS[i]:'')+'"></label><div class="btns">'+(i>=0?'<button onclick="delPro('+i+')" style="margin-right:auto;color:#c0392b">Excluir</button><button onclick="showPro(-1)">Novo</button>':'')+'<button onclick="D2.close()">Fechar</button><button class="pri" onclick="savePro('+i+')">Salvar</button></div>';
+  if(!D2.open)D2.showModal();
+}
+function savePro(i){const n=$('pn').value.trim();if(!n){toast('Informe o nome do profissional');return}
+  if(i>=0)PROFS[i]=n;else{PROFS.push(n);PU.push(null)}
+  saveP();fillSelects();render();showPro(-1);toast('Profissional salvo')}
+async function delPro(i){if(PROFS.length<2){toast('A agenda precisa de ao menos um profissional');return}
+  const n=appts.filter(a=>a.prof==i).length;
+  if(!await ask('Excluir '+PROFS[i]+'?'+(n?' Os '+n+' atendimentos dela(e) também serão excluídos.':'')))return;
+  appts=appts.filter(a=>a.prof!=i);appts.forEach(a=>{if(a.prof>i)a.prof--});
+  PROFS.splice(i,1);PU.splice(i,1);selA=null;selS=null;save();saveP();fillSelects();render();showPro(-1)}
+$('fs').oninput=()=>{const s=svcs.find(x=>x.name.toLowerCase()==$('fs').value.trim().toLowerCase());if(s){$('fd').value=s.dur;updTimes()}};
+refreshLists();
+fillSelects();render();
+$("wrap").scrollTop=(9*60-START)/STEP*H;
+/* ===== Supabase: login, perfis e dados ===== */
+const SB_URL='https://chyxnbcqxtqonblyxszs.supabase.co',SB_KEY='sb_publishable_hM4q_eEC7ika55JPsaTbtQ_S4Z-e-6Z';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+let ME=null,RECOV=/type=recovery/.test(location.hash),SNAP={profs:{},svcs:{},clis:{},appts:{}},Q=Promise.resolve(),amode='login';
+const OWN=()=>!!ME&&ME.role==='proprietaria';
+function lockRO(){P.querySelectorAll('h3,label,.row,.btns').forEach(e=>e.remove());P.insertAdjacentHTML('beforeend','<div class="btns"><button onclick="D2.close()">Fechar</button></div>')}
+function showSvc(id){showSvc0(id);if(!OWN())lockRO()}
+function showPro(i){showPro0(i);if(!OWN())lockRO()}
+function ensureU(){PU=PU.map(u=>u||crypto.randomUUID());[svcs,clis,appts].forEach(l=>l.forEach(x=>{x.u=x.u||crypto.randomUUID()}))}
+function buildCur(){ensureU();const c={profs:{},svcs:{},clis:{},appts:{}};
+  PROFS.forEach((n,i)=>{c.profs[PU[i]]={id:PU[i],nome:n,ativo:true}});
+  svcs.forEach(s=>{c.svcs[s.u]={id:s.u,nome:s.name,duracao_min:s.dur,preco:+s.price||0,ativo:true}});
+  clis.forEach(x=>{c.clis[x.u]={id:x.u,nome:x.name,telefone:x.phone||''}});
+  appts.forEach(a=>{const cl=clis.find(x=>x.name.toLowerCase()==a.client.toLowerCase()),sv=svcs.find(x=>x.name.toLowerCase()==a.service.toLowerCase());
+    c.appts[a.u]={id:a.u,data:a.date,profissional_id:PU[a.prof],cliente_id:cl?cl.u:null,servico_id:sv?sv.u:null,servico_nome:a.service||'',inicio_min:a.start,duracao_min:a.dur,status:a.status,preco_cobrado:a.status==='finalizado'?(a.price??priceOf(a.service)):null,grupo_id:a.gid||null}});
+  return c}
+async function sync(){
+  const cur=buildCur(),tb={profs:'profissionais',svcs:'servicos',clis:'clientes',appts:'agendamentos'};
+  for(const k of ['profs','svcs','clis','appts']){const ch=Object.values(cur[k]).filter(r=>JSON.stringify(r)!==JSON.stringify(SNAP[k][r.id]));
+    if(ch.length){const{error}=await sb.from(tb[k]).upsert(ch);if(error)throw error}}
+  const gone=k=>Object.keys(SNAP[k]).filter(id=>!cur[k][id]);let g=gone('appts');
+  if(g.length){const{error}=await sb.from('agendamentos').delete().in('id',g);if(error)throw error}
+  g=gone('clis');if(g.length){const{error}=await sb.from('clientes').delete().in('id',g);if(error)throw error}
+  for(const k of ['svcs','profs']){g=gone(k);if(g.length){const{error}=await sb.from(tb[k]).update({ativo:false}).in('id',g);if(error)throw error}}
+  SNAP=cur}
+const queue=()=>{Q=Q.then(sync).catch(async e=>{toast('Não foi possível salvar: '+(e.message||e));selA=null;try{await loadAll()}catch(x){}render()})};
+async function all(t,f){let o=[],from=0;for(;;){let q=sb.from(t).select('*').order('id').range(from,from+999);if(f)q=f(q);const{data,error}=await q;if(error)throw error;o=o.concat(data);if(data.length<1000)return o;from+=1000}}
+async function loadAll(){
+  const[p,s,c,a]=await Promise.all([all('profissionais',q=>q.eq('ativo',true)),all('servicos',q=>q.eq('ativo',true)),all('clientes'),all('agendamentos')]);
+  p.sort((x,y)=>x.nome.localeCompare(y.nome));s.sort((x,y)=>x.nome.localeCompare(y.nome));
+  PU=p.map(x=>x.id);PROFS=p.map(x=>x.nome);
+  svcs=s.map((x,i)=>({id:i+1,u:x.id,name:x.nome,dur:x.duracao_min,price:+x.preco}));
+  clis=c.map((x,i)=>({id:i+1,u:x.id,name:x.nome,phone:x.telefone||''}));
+  const cn={};c.forEach(x=>{cn[x.id]=x.nome});
+  appts=a.map((x,i)=>({id:i+1,u:x.id,date:x.data,prof:PU.indexOf(x.profissional_id),start:x.inicio_min,dur:x.duracao_min,client:x.cliente_id?(cn[x.cliente_id]||''):'',service:x.servico_nome||'',status:x.status,price:x.preco_cobrado,gid:x.grupo_id})).filter(x=>x.prof>=0);
+  SNAP=buildCur();refreshLists();fillSelects()}
+async function refresh(){if(!ME||document.hidden||document.querySelector('dialog[open]'))return;
+  try{await Q;const su=(appts.find(a=>a.id==selA)||{}).u;await loadAll();const f=appts.find(a=>a.u===su);selA=f?f.id:null;render()}catch(e){}}
+setInterval(refresh,60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
+
+function setMode(m,msg){amode=m;$('auth').style.display='flex';
+  $('ael').style.display=m==='recovery'?'none':'';$('apl').style.display=m==='reset'?'none':'';$('ap2l').style.display=m==='recovery'?'':'none';
+  $('apt').textContent=m==='recovery'?'Nova senha':'Senha';$('ab').textContent={login:'Entrar',reset:'Enviar link por e-mail',recovery:'Salvar nova senha'}[m];
+  $('af').textContent=m==='login'?'Esqueci minha senha':'Voltar ao login';$('af').style.display=m==='recovery'?'none':'';
+  $('as').textContent=m==='reset'?'Informe seu e-mail para receber o link':m==='recovery'?'Crie uma nova senha':'Acesse com seu e-mail e senha';
+  $('ap').autocomplete=m==='recovery'?'new-password':'current-password';$('am').textContent=msg||''}
+$('af').onclick=()=>setMode(amode==='login'?'reset':'login');
+$('aform').onsubmit=async e=>{e.preventDefault();const em=$('ae').value.trim(),pw=$('ap').value;$('ab').disabled=true;$('am').textContent='';
+  try{
+    if(amode==='login'){if(!em||!pw)throw new Error('Informe e-mail e senha.');const{error}=await sb.auth.signInWithPassword({email:em,password:pw});if(error)throw new Error('E-mail ou senha incorretos.')}
+    else if(amode==='reset'){if(!em)throw new Error('Informe seu e-mail.');const{error}=await sb.auth.resetPasswordForEmail(em,{redirectTo:location.origin+location.pathname});if(error)throw error;$('am').textContent='Se o e-mail estiver cadastrado, você receberá um link para criar uma nova senha.'}
+    else{if(pw.length<8)throw new Error('A senha precisa ter ao menos 8 caracteres.');if($('ap2').value!==pw)throw new Error('As senhas não conferem.');const{error}=await sb.auth.updateUser({password:pw});if(error)throw error;RECOV=false;history.replaceState(null,'',location.pathname);$('ap2').value='';const{data}=await sb.auth.getSession();boot(data.session)}
+  }catch(err){$('am').textContent=err.message}
+  $('ab').disabled=false};
+async function boot(s){
+  if(!s){setMode('login');return}
+  $('am').textContent='Carregando…';
+  const{data:pf,error}=await sb.from('profiles').select('nome,role,ativo').eq('id',s.user.id).maybeSingle();
+  if(error||!pf||!pf.ativo){await sb.auth.signOut();setMode('login','Seu usuário não tem acesso ao sistema. Fale com a proprietária.');return}
+  ME={uid:s.user.id,nome:pf.nome,role:pf.role};document.body.classList.toggle('rec',pf.role!=='proprietaria');
+  try{await loadAll()}catch(e){await sb.auth.signOut();setMode('login','Erro ao carregar os dados: '+(e.message||e));return}
+  $('un').textContent=pf.nome+' · '+(pf.role==='proprietaria'?'proprietária':'recepcionista');
+  $('auth').style.display='none';$('ap').value='';$('am').textContent='';render()}
+$('lo').onclick=()=>sb.auth.signOut();
+if(/error_code=/.test(location.hash)){history.replaceState(null,'',location.pathname);RECOV=false;setMode('login','Link inválido ou expirado. Peça outro em "Esqueci minha senha".')}
+sb.auth.onAuthStateChange((ev,s)=>{
+  if(ev==='PASSWORD_RECOVERY'){RECOV=true;setMode('recovery');return}
+  if(RECOV)return;
+  if(ev==='SIGNED_OUT'){ME=null;appts=[];svcs=[];clis=[];PROFS=[];PU=[];selA=null;selS=null;document.body.classList.remove('rec');render();setMode('login');return}
+  if(ev==='INITIAL_SESSION'||ev==='SIGNED_IN'){
+    if(!s){if(!$('am').textContent)setMode('login');return}
+    if(ME&&ME.uid===s.user.id)return;setTimeout(()=>boot(s),0)}});
+</script>
+</body>
+</html>
