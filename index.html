@@ -160,8 +160,8 @@ function render(){
   const k=key(cur);
   PROFS.forEach((p,pi)=>{
     let c='<div class="col" data-p="'+pi+'" style="height:'+rows*H+'px">';const ab=absOn(pi,k);if(ab)c+='<div class="aus" style="height:'+rows*H+'px"><span>Ausente'+(ab.motivo?' · '+esc(ab.motivo):'')+'</span></div>';
-    appts.filter(a=>a.status!="cancelado"&&a.date==k&&a.prof==pi).forEach(a=>{
-      c+='<button class="ap '+a.status+(a.id==selA?" on":"")+'" data-id="'+a.id+'" style="top:'+(a.start-START)/STEP*H+'px;height:'+a.dur/STEP*H+'px"><b>'+esc(a.client||(a.status=="bloqueado"?"Bloqueado":""))+'</b><small>'+esc(a.service)+'</small></button>'});
+    lanes(appts.filter(a=>a.status!="cancelado"&&a.date==k&&a.prof==pi)).forEach(({a,l,n})=>{
+      c+='<button class="ap '+a.status+(a.id==selA?" on":"")+'" data-id="'+a.id+'" style="top:'+(a.start-START)/STEP*H+'px;height:'+a.dur/STEP*H+'px;left:calc((100% - 14px)*'+l+'/'+n+' + 1px);width:calc((100% - 14px)/'+n+' - 2px);right:auto"><b>'+esc(a.client||(a.status=="bloqueado"?"Bloqueado":""))+'</b><small>'+esc(a.service)+'</small></button>'});
     if(selS&&selS.p==pi)c+='<div class="cell pick" style="top:'+(selS.m-START)/STEP*H+'px"></div>';
     if(k==today0){const n=today.getHours()*60+today.getMinutes();if(n>=START&&n<END&&pi==0)c+='';}
     g.dataset.k=k;h+=c+'</div>'});
@@ -182,7 +182,7 @@ function renderInfo(){
   const a=appts.find(x=>x.id==selA);
   if(a)$("info").innerHTML="<b>Horário:</b> "+hm(a.start)+" – "+hm(a.start+a.dur)+"<br><b>"+esc(PROFS[a.prof])+"</b><br>"+esc(a.client)+" · "+esc(a.service)+"<br>Situação: "+a.status.toUpperCase()+(priceOf(a.service)?"<br>"+money(priceOf(a.service)):"");
   else if(selS)$("info").innerHTML="<b>Horário:</b> "+hm(selS.m)+"<br><b>"+esc(PROFS[selS.p])+"</b><br>Situação: DISPONÍVEL";
-  else $("info").innerHTML="Toque em um horário livre para agendar ou em um atendimento para alterar.";
+  else $("info").innerHTML="Toque em um horário livre para agendar. Para marcar outro cliente no mesmo horário, toque na faixa à direita do atendimento.";
   ["aAlt","aDet","aCan","aFin"].forEach(i=>$(i).disabled=!a);
   $("aInc").disabled=!selS&&!a;
 }
@@ -212,7 +212,7 @@ function openDlg(id){
   editId=id;const a=appts.find(x=>x.id==id);
   $("dh").textContent=a?"Alterar agendamento":"Novo agendamento";
   $("fc").value=a?a.client:"";$("fs").value=a?a.service:"";
-  $("fp").value=a?a.prof:(selS?selS.p:0);$("fh").value=a?a.start:(selS?selS.m:600);
+  const r0=a||(selS?{prof:selS.p,start:selS.m}:appts.find(x=>x.id==selA));$("fp").value=r0?r0.prof:0;$("fh").value=r0?r0.start:600;
   $("fd").value=a?a.dur:60;$("fst").value=a?a.status:"pendente";
   $("bd").style.display=$("bf").style.display=a?"":"none";
   extras=[];drawExtra();$("bad").style.display=a?"none":"";
@@ -227,13 +227,12 @@ $("bf").onclick=()=>{const a=appts.find(x=>x.id==editId);if(a){a.status="finaliz
 $("bs").onclick=async()=>{
   const o={date:key(cur),prof:+$("fp").value,start:+$("fh").value,dur:+$("fd").value,client:$("fc").value.trim(),service:$("fs").value.trim(),status:$("fst").value};
   if(!o.client&&o.status!="bloqueado"){toast("Informe o nome do cliente");return}
-  const clash=appts.find(a=>a.status!="cancelado"&&a.id!=editId&&a.date==o.date&&a.prof==o.prof&&a.start<o.start+o.dur&&o.start<a.start+a.dur);
-  if(clash&&!await ask("Já existe um atendimento nesse horário ("+(clash.client||"bloqueio")+"). Agendar mesmo assim?"))return;
+  const blk=appts.find(a=>a.status=="bloqueado"&&a.id!=editId&&a.date==o.date&&a.prof==o.prof&&a.start<o.start+o.dur&&o.start<a.start+a.dur);
+  if(o.status!="bloqueado"&&blk&&!await ask("Esse horário está bloqueado. Agendar mesmo assim?"))return;
   ensureClient(o.client);refreshLists();
   const list=[o];let t=o.start+o.dur;
   if(!editId)extras.forEach(x=>{list.push({date:o.date,prof:x.prof,start:t,dur:x.dur,client:o.client,service:x.service.trim(),status:o.status});t+=x.dur});
   if(!editId&&t>END){toast("Os serviços passam do fechamento ("+hm(END)+")");return}
-  if(list.slice(1).some(n=>appts.some(a=>a.status!="cancelado"&&a.date==n.date&&a.prof==n.prof&&a.start<n.start+n.dur&&n.start<a.start+a.dur))&&!await ask("Um dos serviços adicionais cai em horário já ocupado. Agendar mesmo assim?"))return;
   if(editId){Object.assign(appts.find(a=>a.id==editId),o)}else{list.forEach((n,i)=>{n.id=Date.now()+i;appts.push(n)});selA=list[0].id;selS=null}
   save();$("dlg").close();render();toast(!editId&&extras.length?(extras.length+1)+" serviços agendados":"Agendamento salvo");
 };
@@ -425,6 +424,14 @@ function saveAus(i){const a=$('ai').value,b=$('ai2').value;
   const n=appts.filter(x=>x.prof==i&&x.status!='cancelado'&&x.status!='bloqueado'&&x.date>=a&&x.date<=b).length;
   save();render();showAus(i);toast(n?'Ausência marcada. Atenção: '+n+' atendimento(s) já marcado(s) nesse período.':'Ausência marcada')}
 function delAus(id,i){AUS=AUS.filter(a=>a.id!=id);save();render();showAus(i);toast('Ausência removida')}
+
+/* ===== Vários clientes no mesmo horário: lado a lado ===== */
+function lanes(list){list=list.slice().sort((a,b)=>a.start-b.start||b.dur-a.dur);const out=[];let cl=[],end=0;
+  const flush=()=>{const n=Math.max(...cl.map(x=>x.l))+1;cl.forEach(x=>out.push({a:x.a,l:x.l,n}));cl=[]};
+  list.forEach(a=>{const e=a.start+a.dur;if(cl.length&&a.start>=end)flush();
+    const used=cl.filter(x=>x.a.start+x.a.dur>a.start).map(x=>x.l);let l=0;while(used.includes(l))l++;
+    cl.push({a,l});end=cl.length===1?e:Math.max(end,e)});
+  if(cl.length)flush();return out}
 </script>
 </body>
 </html>
