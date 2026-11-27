@@ -77,7 +77,8 @@ dialog{max-height:92vh;overflow:auto}.xr{border-top:1px dashed var(--ln);margin-
 .am{min-height:18px;margin:10px 0 0;text-align:center;font-size:13px;color:var(--mu)}
 .usr{margin-top:14px;padding-top:10px;border-top:1px solid var(--ln);font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .usr button{padding:5px 12px;border:1px solid var(--ln);border-radius:5px;background:var(--bg)}
-.rec .ownly{display:none!important}
+.rec .ownly{display:none!important}.rec .mv{display:none}
+.it[draggable]{cursor:grab}.it.drop{outline:2px dashed var(--ac);outline-offset:-2px}.mv{cursor:pointer;padding:0 7px;font-style:normal;color:var(--ac)}
 .hcp{cursor:pointer}.hcp:hover{filter:brightness(.95)}
 .aus{position:absolute;left:0;right:0;top:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(45deg,var(--off) 0 8px,transparent 8px 16px);display:flex;justify-content:center;align-items:flex-start;padding-top:8px}
 .aus span{background:var(--sf);border:1px solid var(--ln);padding:2px 10px;border-radius:10px;font-size:12px;position:sticky;top:44px}
@@ -318,7 +319,7 @@ async function bkRest(){let d;try{d=JSON.parse($('bk').value)}catch(e){toast('Te
 setPal(ld('agenda-salao-pal','rose'));
 const saveP=()=>queue();
 function showPro0(i){
-  P.innerHTML='<h2>Profissionais</h2><div class="lst">'+PROFS.map((p,k)=>'<button class="it" onclick="showPro('+k+')"><b>'+esc(p)+'</b><span>'+appts.filter(a=>a.prof==k).length+' atend.</span></button>').join('')+'</div><h3>'+(i>=0?'Alterar profissional':'Novo profissional')+'</h3><label>Nome<input id="pn" value="'+esc(i>=0?PROFS[i]:'')+'"></label><div class="btns">'+(i>=0?'<button onclick="delPro('+i+')" style="margin-right:auto;color:#c0392b">Excluir</button><button onclick="showPro(-1)">Novo</button>':'')+'<button onclick="D2.close()">Fechar</button><button class="pri" onclick="savePro('+i+')">Salvar</button></div>';
+  P.innerHTML='<h2>Profissionais</h2><div class="lst">'+PROFS.map((p,k)=>'<button class="it" draggable="true" data-k="'+k+'" onclick="showPro('+k+')"><b>⠿ '+esc(p)+'</b><span>'+appts.filter(a=>a.prof==k).length+' atend. <i class="mv" data-d="-1" title="Subir">▲</i><i class="mv" data-d="1" title="Descer">▼</i></span></button>').join('')+'</div><h3>'+(i>=0?'Alterar profissional':'Novo profissional')+'</h3><label>Nome<input id="pn" value="'+esc(i>=0?PROFS[i]:'')+'"></label><div class="btns">'+(i>=0?'<button onclick="delPro('+i+')" style="margin-right:auto;color:#c0392b">Excluir</button><button onclick="showPro(-1)">Novo</button>':'')+'<button onclick="D2.close()">Fechar</button><button class="pri" onclick="savePro('+i+')">Salvar</button></div>';
   if(!D2.open)D2.showModal();
 }
 function savePro(i){const n=$('pn').value.trim();if(!n){toast('Informe o nome do profissional');return}
@@ -343,7 +344,7 @@ function showSvc(id){showSvc0(id);if(!OWN())lockRO()}
 function showPro(i){showPro0(i);if(!OWN())lockRO()}
 function ensureU(){PU=PU.map(u=>u||crypto.randomUUID());[svcs,clis,appts,AUS].forEach(l=>l.forEach(x=>{x.u=x.u||crypto.randomUUID()}))}
 function buildCur(){ensureU();const c={profs:{},svcs:{},clis:{},appts:{},aus:{}};
-  PROFS.forEach((n,i)=>{c.profs[PU[i]]={id:PU[i],nome:n,ativo:true}});
+  PROFS.forEach((n,i)=>{c.profs[PU[i]]={id:PU[i],nome:n,ativo:true,ordem:i}});
   svcs.forEach(s=>{c.svcs[s.u]={id:s.u,nome:s.name,duracao_min:s.dur,preco:+s.price||0,ativo:true}});
   clis.forEach(x=>{c.clis[x.u]={id:x.u,nome:x.name,telefone:x.phone||''}});
   appts.forEach(a=>{const cl=clis.find(x=>x.name.toLowerCase()==a.client.toLowerCase()),sv=svcs.find(x=>x.name.toLowerCase()==a.service.toLowerCase());
@@ -364,14 +365,14 @@ const queue=()=>{Q=Q.then(sync).catch(async e=>{toast('Não foi possível salvar
 async function all(t,f){let o=[],from=0;for(;;){let q=sb.from(t).select('*').order('id').range(from,from+999);if(f)q=f(q);const{data,error}=await q;if(error)throw error;o=o.concat(data);if(data.length<1000)return o;from+=1000}}
 async function loadAll(){
   const[p,s,c,a,u]=await Promise.all([all('profissionais',q=>q.eq('ativo',true)),all('servicos',q=>q.eq('ativo',true)),all('clientes'),all('agendamentos'),all('ausencias').catch(()=>[])]);
-  p.sort((x,y)=>x.nome.localeCompare(y.nome));s.sort((x,y)=>x.nome.localeCompare(y.nome));
+  p.sort((x,y)=>((x.ordem||0)-(y.ordem||0))||x.nome.localeCompare(y.nome));s.sort((x,y)=>x.nome.localeCompare(y.nome));
   PU=p.map(x=>x.id);PROFS=p.map(x=>x.nome);
   AUS=u.map((x,i)=>({id:i+1,u:x.id,prof:PU.indexOf(x.profissional_id),ini:x.data_ini,fim:x.data_fim,motivo:x.motivo||''})).filter(x=>x.prof>=0);
   svcs=s.map((x,i)=>({id:i+1,u:x.id,name:x.nome,dur:x.duracao_min,price:+x.preco}));
   clis=c.map((x,i)=>({id:i+1,u:x.id,name:x.nome,phone:x.telefone||''}));
   const cn={};c.forEach(x=>{cn[x.id]=x.nome});
   appts=a.map((x,i)=>({id:i+1,u:x.id,date:x.data,prof:PU.indexOf(x.profissional_id),start:x.inicio_min,dur:x.duracao_min,client:x.cliente_id?(cn[x.cliente_id]||''):'',service:x.servico_nome||'',status:x.status,price:x.preco_cobrado,gid:x.grupo_id})).filter(x=>x.prof>=0);
-  SNAP=buildCur();refreshLists();fillSelects()}
+  SNAP=buildCur();p.forEach(x=>{if(SNAP.profs[x.id])SNAP.profs[x.id].ordem=x.ordem||0});refreshLists();fillSelects()}
 async function refresh(){if(!ME||document.hidden||document.querySelector('dialog[open]'))return;
   try{await Q;const su=(appts.find(a=>a.id==selA)||{}).u;await loadAll();const f=appts.find(a=>a.u===su);selA=f?f.id:null;render()}catch(e){}}
 setInterval(refresh,60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
@@ -432,6 +433,23 @@ function lanes(list){list=list.slice().sort((a,b)=>a.start-b.start||b.dur-a.dur)
     const used=cl.filter(x=>x.a.start+x.a.dur>a.start).map(x=>x.l);let l=0;while(used.includes(l))l++;
     cl.push({a,l});end=cl.length===1?e:Math.max(end,e)});
   if(cl.length)flush();return out}
+
+/* ===== Ordem dos profissionais (arrastar ou ▲▼) ===== */
+function moveProf(f,t){
+  if(!OWN()){toast('Só a proprietária pode reorganizar os profissionais');return}
+  if(f===t)return;
+  const order=PROFS.map((_,i)=>i),[x]=order.splice(f,1);order.splice(t,0,x);
+  const inv=[];order.forEach((o,n)=>{inv[o]=n});
+  PROFS=order.map(o=>PROFS[o]);PU=order.map(o=>PU[o]);
+  appts.forEach(a=>{a.prof=inv[a.prof]});AUS.forEach(a=>{a.prof=inv[a.prof]});
+  selS=null;save();render();showPro(-1)}
+let dragK=null;
+P.addEventListener('click',e=>{const m=e.target.closest('.mv');if(!m)return;e.stopPropagation();e.preventDefault();
+  const k=+m.closest('.it').dataset.k,t=k+ +m.dataset.d;if(t>=0&&t<PROFS.length)moveProf(k,t)},true);
+P.addEventListener('dragstart',e=>{const it=e.target.closest('.it[data-k]');if(it){dragK=+it.dataset.k;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',String(dragK))}});
+P.addEventListener('dragover',e=>{const it=e.target.closest('.it[data-k]');if(it&&dragK!==null){e.preventDefault();P.querySelectorAll('.drop').forEach(x=>x.classList.remove('drop'));it.classList.add('drop')}});
+P.addEventListener('drop',e=>{const it=e.target.closest('.it[data-k]');if(it&&dragK!==null){e.preventDefault();const t=+it.dataset.k,f=dragK;dragK=null;moveProf(f,t)}});
+P.addEventListener('dragend',()=>{dragK=null;P.querySelectorAll('.drop').forEach(x=>x.classList.remove('drop'))});
 </script>
 </body>
 </html>
