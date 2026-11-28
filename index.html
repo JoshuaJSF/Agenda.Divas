@@ -107,6 +107,7 @@ dialog{max-height:92vh;overflow:auto}.xr{border-top:1px dashed var(--ln);margin-
   <button class="act" id="aCl">☺ Clientes</button>
   <button class="act" id="aPr">♛ Profissionais</button>
   <button class="act ownly" id="aBk">⇩ Backup</button>
+  <button class="act ownly" id="aCf">⚙ Configurações</button>
   <div class="info" id="info"></div>
   <div class="leg">
     <div><i style="background:var(--pe)"></i>Pendente</div><div><i style="background:var(--fi)"></i>Finalizado</div>
@@ -139,7 +140,7 @@ dialog{max-height:92vh;overflow:auto}.xr{border-top:1px dashed var(--ln);margin-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 let PROFS=[],PU=[],AUS=[];
-const START=8*60,END=22*60,STEP=15,H=26;
+let START=8*60,END=22*60;const STEP=15,H=26;
 const MES=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 const DIA=["domingo","segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira","sábado"];
 const $=id=>document.getElementById(id);
@@ -364,6 +365,7 @@ async function sync(){
 const queue=()=>{Q=Q.then(sync).catch(async e=>{toast('Não foi possível salvar: '+(e.message||e));selA=null;try{await loadAll()}catch(x){}render()})};
 async function all(t,f){let o=[],from=0;for(;;){let q=sb.from(t).select('*').order('id').range(from,from+999);if(f)q=f(q);const{data,error}=await q;if(error)throw error;o=o.concat(data);if(data.length<1000)return o;from+=1000}}
 async function loadAll(){
+  try{const{data:cf}=await sb.from('configuracoes').select('valor').eq('chave','horario').maybeSingle();if(cf&&cf.valor&&cf.valor.inicio>=0&&cf.valor.fim>cf.valor.inicio&&cf.valor.fim<=1440){START=cf.valor.inicio;END=cf.valor.fim}}catch(e){}
   const[p,s,c,a,u]=await Promise.all([all('profissionais',q=>q.eq('ativo',true)),all('servicos',q=>q.eq('ativo',true)),all('clientes'),all('agendamentos'),all('ausencias').catch(()=>[])]);
   p.sort((x,y)=>((x.ordem||0)-(y.ordem||0))||x.nome.localeCompare(y.nome));s.sort((x,y)=>x.nome.localeCompare(y.nome));
   PU=p.map(x=>x.id);PROFS=p.map(x=>x.nome);
@@ -450,6 +452,22 @@ P.addEventListener('dragstart',e=>{const it=e.target.closest('.it[data-k]');if(i
 P.addEventListener('dragover',e=>{const it=e.target.closest('.it[data-k]');if(it&&dragK!==null){e.preventDefault();P.querySelectorAll('.drop').forEach(x=>x.classList.remove('drop'));it.classList.add('drop')}});
 P.addEventListener('drop',e=>{const it=e.target.closest('.it[data-k]');if(it&&dragK!==null){e.preventDefault();const t=+it.dataset.k,f=dragK;dragK=null;moveProf(f,t)}});
 P.addEventListener('dragend',()=>{dragK=null;P.querySelectorAll('.drop').forEach(x=>x.classList.remove('drop'))});
+
+/* ===== Configurações (proprietária): horário da agenda ===== */
+$('aCf').onclick=()=>showCfg();
+const hopts=(from,to,sel)=>{let o='';for(let m=from;m<=to;m+=30)o+='<option value="'+m+'"'+(m==sel?' selected':'')+'>'+hm(m)+'</option>';return o};
+function showCfg(){
+  P.innerHTML='<h2>Configurações</h2><h3>Horário de funcionamento da agenda</h3><div class="row"><label>Abre às<select id="cfi">'+hopts(0,23*60+30,START)+'</select></label><label>Fecha às<select id="cff">'+hopts(30,24*60,END)+'</select></label></div><p class="mu" style="padding:8px 0 0;margin:0">Vale para todos os profissionais e para todos os usuários.</p><div class="btns"><button onclick="D2.close()">Fechar</button><button class="pri" onclick="saveCfg()">Salvar</button></div>';
+  if(!D2.open)D2.showModal();
+}
+async function saveCfg(){
+  if(!OWN())return;const i=+$('cfi').value,f=+$('cff').value;
+  if(f<=i){toast('O fechamento precisa ser depois da abertura');return}
+  const n=appts.filter(a=>a.status!=='cancelado'&&(a.start<i||a.start+a.dur>f)).length;
+  if(n&&!await ask(n+' atendimento(s) ficariam fora desse horário e deixariam de aparecer na grade. Salvar mesmo assim?'))return;
+  const{error}=await sb.from('configuracoes').upsert({chave:'horario',valor:{inicio:i,fim:f}});
+  if(error){toast('Não foi possível salvar: '+error.message);return}
+  START=i;END=f;fillSelects();render();D2.close();toast('Horário atualizado')}
 </script>
 </body>
 </html>
